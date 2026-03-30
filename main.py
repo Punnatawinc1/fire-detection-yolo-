@@ -1,8 +1,7 @@
-
 from ultralytics import YOLO
 import cv2
 
-model = YOLO("yolov8n.pt")
+model = YOLO("runs/detect/train/weights/best.pt")
 
 cap = cv2.VideoCapture(0)
 
@@ -11,12 +10,22 @@ while True:
     if not ret:
         break
 
-    results = model(frame)
-    annotated_frame = results[0].plot()
+    results = model(frame, conf=0.5)
 
-    cv2.imshow("Fire Detection", annotated_frame)
+    fire_detected = False
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    for r in results:
+        for box in r.boxes:
+            cls = int(box.cls[0])
+            name = model.names[cls]
+
+            if name == "fire":
+                fire_detected = True
+                print("🔥 FIRE DETECTED !!!")
+
+    cv2.imshow("Fire Detection", results[0].plot())
+
+    if cv2.waitKey(1) == 27:
         break
 
 cap.release()
